@@ -63,6 +63,19 @@ mvn exec:java -Dexec.mainClass="com.atm.Main" -Dexec.args="kiosk"
    java -jar target/atm-simulation-1.0-SNAPSHOT.jar kiosk
    ```
 
+## 🖥️ Windows EXE (Self-Contained)
+1. Build the JAR as above.
+2. Create the EXE:
+   ```bash
+   jpackage --name "ATM Simulation" --input target/ --main-jar atm-simulation-1.0-SNAPSHOT.jar --main-class com.atm.Main --type app-image --dest dist/
+   ```
+   - This requires JDK 14+ (you have 17).
+   - Creates `dist/ATM Simulation/ATM Simulation.exe` (a self-contained app with embedded JRE).
+
+3. Run the EXE:
+   - Double-click `ATM Simulation.exe` or run from command line.
+   - For kiosk mode: Create a shortcut or batch file with arguments (EXE doesn't support direct args easily; use a wrapper script).
+
 ## 🧾 Features
 - Login with mobile and PIN
 - Withdraw/Deposit
