@@ -47,6 +47,22 @@ mvn exec:java -Dexec.mainClass="com.atm.Main" -Dexec.args="kiosk"
 ```
 - Exit kiosk: `Ctrl+Alt+C`
 
+## 📦 Executable JAR
+1. Build the executable JAR:
+   ```bash
+   mvn clean package
+   ```
+
+2. Run the JAR:
+   ```bash
+   java -jar target/atm-simulation-1.0-SNAPSHOT.jar
+   ```
+
+3. For kiosk mode:
+   ```bash
+   java -jar target/atm-simulation-1.0-SNAPSHOT.jar kiosk
+   ```
+
 ## 🧾 Features
 - Login with mobile and PIN
 - Withdraw/Deposit

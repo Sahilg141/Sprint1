@@ -8,6 +8,10 @@ import java.awt.event.KeyEvent;
 public class LoginUI extends JFrame {
     private ATMService atmService;
     private boolean kioskMode;
+    private JButton loginBtn;
+    private JTextField mobileField;
+    private JPasswordField pinField;
+    private JLabel statusLabel;
 
     public LoginUI(ATMService service) {
         this(service, false);
@@ -21,9 +25,10 @@ public class LoginUI extends JFrame {
 
     private void initUI() {
         setTitle("ATM Login");
-        setSize(400, 220);
+        setSize(450, 300);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(false);
 
         if (kioskMode) {
             setUndecorated(true);
@@ -31,50 +36,113 @@ public class LoginUI extends JFrame {
             addExitKioskShortcut();
         }
 
-        JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
-        panel.setBackground(new Color(10, 33, 68));
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        JPanel mainPanel = new JPanel(new GridBagLayout());
+        mainPanel.setBackground(new Color(10, 33, 68));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
 
-        JLabel mobileLabel = new JLabel("Mobile:");
+        // Logo
+        JLabel logoLabel = new JLabel("🏦 ATM Simulator", SwingConstants.CENTER);
+        logoLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        logoLabel.setForeground(Color.WHITE);
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        mainPanel.add(logoLabel, gbc);
+
+        // Mobile
+        JLabel mobileLabel = new JLabel("Mobile Number:");
         mobileLabel.setForeground(Color.WHITE);
-        JTextField mobileField = new JTextField();
+        mobileLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
+        mainPanel.add(mobileLabel, gbc);
 
+        mobileField = new JTextField(15);
+        mobileField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        mobileField.setToolTipText("Enter your registered mobile number");
+        gbc.gridx = 1; gbc.gridy = 1;
+        mainPanel.add(mobileField, gbc);
+
+        // PIN
         JLabel pinLabel = new JLabel("PIN:");
         pinLabel.setForeground(Color.WHITE);
-        JPasswordField pinField = new JPasswordField();
+        pinLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbc.gridx = 0; gbc.gridy = 2;
+        mainPanel.add(pinLabel, gbc);
 
-        JButton loginBtn = new JButton("Login");
+        pinField = new JPasswordField(15);
+        pinField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        pinField.setToolTipText("Enter your 4-digit PIN");
+        gbc.gridx = 1; gbc.gridy = 2;
+        mainPanel.add(pinField, gbc);
+
+        // Login Button
+        loginBtn = new JButton("Login");
         loginBtn.setBackground(new Color(15, 110, 190));
         loginBtn.setForeground(Color.WHITE);
-        loginBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        loginBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        loginBtn.setFocusPainted(false);
+        loginBtn.setToolTipText("Click to login");
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
+        mainPanel.add(loginBtn, gbc);
 
-        panel.add(mobileLabel);
-        panel.add(mobileField);
-        panel.add(pinLabel);
-        panel.add(pinField);
-        panel.add(new JLabel());
-        panel.add(loginBtn);
+        // Status Label
+        statusLabel = new JLabel("", SwingConstants.CENTER);
+        statusLabel.setForeground(Color.YELLOW);
+        statusLabel.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
+        mainPanel.add(statusLabel, gbc);
 
-        add(panel);
+        add(mainPanel);
 
-        loginBtn.addActionListener(e -> {
-            String mobile = mobileField.getText();
-            String pin = new String(pinField.getPassword());
-            try {
-                User user = atmService.login(mobile, pin);
-                if (user != null) {
-                    new ATMUI(user, atmService, kioskMode);
-                    dispose();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Invalid credentials.", "Login Failed", JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
+        loginBtn.addActionListener(this::handleLogin);
 
         getContentPane().setBackground(new Color(2, 24, 48));
         setVisible(true);
+    }
+
+    private void handleLogin(ActionEvent e) {
+        String mobile = mobileField.getText().trim();
+        String pin = new String(pinField.getPassword());
+
+        if (mobile.isEmpty() || pin.isEmpty()) {
+            statusLabel.setText("Please enter mobile and PIN.");
+            return;
+        }
+
+        loginBtn.setEnabled(false);
+        loginBtn.setText("Logging in...");
+        statusLabel.setText("Authenticating...");
+
+        SwingWorker<User, Void> worker = new SwingWorker<>() {
+            @Override
+            protected User doInBackground() throws Exception {
+                return atmService.login(mobile, pin);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    User user = get();
+                    if (user != null) {
+                        statusLabel.setText("Login successful!");
+                        SwingUtilities.invokeLater(() -> {
+                            new ATMUI(user, atmService, kioskMode);
+                            dispose();
+                        });
+                    } else {
+                        statusLabel.setText("Invalid credentials.");
+                        JOptionPane.showMessageDialog(LoginUI.this, "Invalid credentials.", "Login Failed", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (Exception ex) {
+                    statusLabel.setText("Login failed.");
+                    JOptionPane.showMessageDialog(LoginUI.this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    loginBtn.setEnabled(true);
+                    loginBtn.setText("Login");
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void addExitKioskShortcut() {

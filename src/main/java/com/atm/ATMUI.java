@@ -2,6 +2,8 @@ package com.atm;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.sql.SQLException;
 
@@ -27,6 +29,12 @@ public class ATMUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
+
+        if (kioskMode) {
+            setUndecorated(true);
+            setExtendedState(JFrame.MAXIMIZED_BOTH);
+            addExitKioskShortcut();
+        }
 
         try {
             UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
@@ -189,6 +197,19 @@ public class ATMUI extends JFrame {
 
     private void logout() {
         dispose();
-        SwingUtilities.invokeLater(() -> new LoginUI(atmService));
+        SwingUtilities.invokeLater(() -> new LoginUI(atmService, kioskMode));
+    }
+
+    private void addExitKioskShortcut() {
+        KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK);
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, "exitKiosk");
+        getRootPane().getActionMap().put("exitKiosk", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(ATMUI.this, "Exiting kiosk mode", "Info", JOptionPane.INFORMATION_MESSAGE);
+                dispose();
+                new LoginUI(atmService, false);
+            }
+        });
     }
 }
