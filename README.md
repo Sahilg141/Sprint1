@@ -74,7 +74,7 @@ mvn exec:java -Dexec.mainClass="com.atm.Main" -Dexec.args="kiosk"
 
 3. Run the EXE:
    - Double-click `ATM Simulation.exe` or run from command line.
-   - For kiosk mode: Create a shortcut or batch file with arguments (EXE doesn't support direct args easily; use a wrapper script).
+   - For kiosk mode: `"ATM Simulation.exe" kiosk` (pass arguments after the exe name).
 
 ## 🧾 Features
 - Login with mobile and PIN
