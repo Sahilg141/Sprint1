@@ -1,0 +1,25 @@
+# Maven
+/target/
+**/target/
+*.log
+*.tmp
+
+# IntelliJ
+*.iml
+.idea/
+*.iws
+out/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Java
+*.class
+*.jar
+
+# other
+db.properties
